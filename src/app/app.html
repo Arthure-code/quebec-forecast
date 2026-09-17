@@ -1,1 +1,315 @@
-<h1>Québec forecast</h1>
+<div class="container py-4">
+  <header class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+    <div>
+      <h1 class="h4 mb-0">Québec forecast</h1>
+      <p class="dim mb-0">Québec City, Canada</p>
+    </div>
+    <p class="dim small mb-0">Past months as measured, the next 16 days as forecast.</p>
+  </header>
+
+  <main>
+    <section class="panel hero p-4 mb-4" aria-label="Right now">
+      <div class="row g-4 align-items-center">
+        <div class="col-md-5">
+          @if (current(); as now) {
+            <p class="dim mb-1" data-testid="now-time">
+              Right now, {{ now.time | date: 'shortTime' }}
+            </p>
+            <p class="temperature mb-0" data-testid="now-temperature">
+              {{ now.temperature | number: '1.0-0' }}<span class="unit">°C</span>
+            </p>
+            <p class="fs-5 mb-0" data-testid="now-sky">{{ now.sky }}</p>
+          } @else {
+            <p class="dim mb-1 placeholder-glow" aria-hidden="true">
+              <span class="placeholder col-6"></span>
+            </p>
+            <p class="temperature mb-0 placeholder-glow" aria-hidden="true">
+              <span class="placeholder col-4"></span>
+            </p>
+            <p class="fs-5 mb-0 placeholder-glow" aria-hidden="true">
+              <span class="placeholder col-5"></span>
+            </p>
+          }
+        </div>
+        <div class="col-md-7">
+          <div class="row g-3 stats" data-testid="today">
+            <div class="col-6 col-sm-3">
+              <div class="stat">
+                <span class="dim small">High</span>
+                <span class="value high">
+                  @if (today(); as day) {
+                    {{ day.high | number: '1.0-0' }}°
+                  } @else {
+                    <span class="placeholder col-6" aria-hidden="true"></span>
+                  }
+                </span>
+              </div>
+            </div>
+            <div class="col-6 col-sm-3">
+              <div class="stat">
+                <span class="dim small">Low</span>
+                <span class="value low">
+                  @if (today(); as day) {
+                    {{ day.low | number: '1.0-0' }}°
+                  } @else {
+                    <span class="placeholder col-6" aria-hidden="true"></span>
+                  }
+                </span>
+              </div>
+            </div>
+            <div class="col-6 col-sm-3">
+              <div class="stat">
+                <span class="dim small">Rain</span>
+                <span class="value">
+                  @if (today(); as day) {
+                    {{ day.precipitation | number: '1.0-1' }} mm
+                  } @else {
+                    <span class="placeholder col-6" aria-hidden="true"></span>
+                  }
+                </span>
+              </div>
+            </div>
+            <div class="col-6 col-sm-3">
+              <div class="stat">
+                <span class="dim small">Chance of rain</span>
+                <span class="value">
+                  @if (today(); as day) {
+                    {{ day.chanceOfRain ?? 0 }} %
+                  } @else {
+                    <span class="placeholder col-6" aria-hidden="true"></span>
+                  }
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="strip mb-4" aria-label="Next seven days" data-testid="strip">
+      @for (date of stripDates; track date.getTime(); let i = $index) {
+        <div class="card-day panel" [class.today]="i === 0">
+          <div class="d-flex justify-content-between align-items-baseline">
+            <span class="fs-5 fw-semibold">{{ date | date: 'd' }}</span>
+            <span class="dim small">{{ i === 0 ? 'Today' : (date | date: 'EEE') }}</span>
+          </div>
+          @if (upcoming()[i]; as day) {
+            <p class="sky mb-2">{{ day.sky }}</p>
+            <p class="mb-0">
+              <span class="high fs-5">{{ day.high | number: '1.0-0' }}°</span>
+              <span class="low ms-2">{{ day.low | number: '1.0-0' }}°</span>
+            </p>
+            <p class="dim small mb-0">{{ day.chanceOfRain ?? 0 }} % rain</p>
+          } @else {
+            <p class="sky mb-2 placeholder-glow" aria-hidden="true">
+              <span class="placeholder col-8"></span>
+            </p>
+            <p class="mb-0 placeholder-glow" aria-hidden="true">
+              <span class="placeholder col-6"></span>
+            </p>
+            <p class="dim small mb-0 placeholder-glow" aria-hidden="true">
+              <span class="placeholder col-5"></span>
+            </p>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="panel p-3 p-md-4" aria-label="Month">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <div class="pills" role="group" aria-label="Month">
+          <button type="button" class="pill" (click)="previousMonth()" data-testid="previous">
+            Previous
+          </button>
+          <button
+            type="button"
+            class="pill"
+            [class.active]="view() === 'days'"
+            (click)="currentMonth()"
+            data-testid="current"
+          >
+            This month
+          </button>
+          <button
+            type="button"
+            class="pill"
+            (click)="nextMonth()"
+            [disabled]="!canGoForward()"
+            data-testid="next"
+          >
+            Next
+          </button>
+        </div>
+        <button
+          type="button"
+          class="pill"
+          [class.active]="view() === 'averages'"
+          (click)="showAverages()"
+          [attr.aria-pressed]="view() === 'averages'"
+          data-testid="averages"
+        >
+          Monthly averages
+        </button>
+      </div>
+
+      @if (view() === 'days') {
+        <h2 class="h5" data-testid="title">{{ monthStart() | date: 'MMMM y' }}</h2>
+      } @else {
+        <h2 class="h5" data-testid="title">Averages of the last {{ averagedMonths }} months</h2>
+      }
+
+      @if (loading() && view() === 'days') {
+        <p class="visually-hidden" role="status" data-testid="loading">Loading</p>
+        <div class="table-responsive placeholder-glow" aria-hidden="true">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col" class="d-none d-md-table-cell">Sky</th>
+                <th scope="col" class="text-end">Low</th>
+                <th scope="col" class="text-end">High</th>
+                <th scope="col" class="text-end">
+                  <span class="d-none d-sm-inline">Precipitation</span
+                  ><span class="d-sm-none">Precip.</span>
+                </th>
+                <th scope="col" class="text-end">
+                  <span class="d-none d-sm-inline">Chance of rain</span
+                  ><span class="d-sm-none">Rain</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (date of expectedDates(); track date.getTime()) {
+                <tr [class.today]="date.getTime() === todayTime">
+                  <td class="text-nowrap">
+                    <span class="d-none d-sm-inline">{{ date | date: 'EEEE, MMMM d' }}</span>
+                    <span class="d-sm-none">{{ date | date: 'EEE, MMM d' }}</span>
+                  </td>
+                  <td class="d-none d-md-table-cell"><span class="placeholder col-6"></span></td>
+                  <td class="text-end"><span class="placeholder col-6"></span></td>
+                  <td class="text-end"><span class="placeholder col-6"></span></td>
+                  <td class="text-end"><span class="placeholder col-6"></span></td>
+                  <td class="text-end"><span class="placeholder col-6"></span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else if (loading()) {
+        <p class="visually-hidden" role="status" data-testid="loading">Loading</p>
+        <div class="table-responsive placeholder-glow" aria-hidden="true">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th scope="col">Month</th>
+                <th scope="col" class="text-end">Mean low</th>
+                <th scope="col" class="text-end">Mean high</th>
+                <th scope="col" class="text-end">
+                  <span class="d-none d-sm-inline">Mean precipitation</span
+                  ><span class="d-sm-none">Precip.</span>
+                </th>
+                <th scope="col" class="text-end">Days</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (date of expectedMonths; track date.getTime()) {
+                <tr>
+                  <td class="text-nowrap">{{ date | date: 'MMMM y' }}</td>
+                  <td class="text-end"><span class="placeholder col-6"></span></td>
+                  <td class="text-end"><span class="placeholder col-6"></span></td>
+                  <td class="text-end"><span class="placeholder col-6"></span></td>
+                  <td class="text-end"><span class="placeholder col-4"></span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else if (error()) {
+        <p class="alert alert-warning" role="alert" data-testid="error">
+          The weather service did not answer. Check your connection and try again.
+        </p>
+      } @else if (view() === 'days') {
+        @if (days().length === 0) {
+          <p class="dim" data-testid="empty">No data for this month yet.</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table align-middle" data-testid="days">
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col" class="d-none d-md-table-cell">Sky</th>
+                  <th scope="col" class="text-end">Low</th>
+                  <th scope="col" class="text-end">High</th>
+                  <th scope="col" class="text-end">
+                    <span class="d-none d-sm-inline">Precipitation</span
+                    ><span class="d-sm-none">Precip.</span>
+                  </th>
+                  <th scope="col" class="text-end">
+                    <span class="d-none d-sm-inline">Chance of rain</span
+                    ><span class="d-sm-none">Rain</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (day of days(); track day.date.getTime()) {
+                  <tr [class.today]="isToday(day)">
+                    <td class="text-nowrap">
+                      <span class="d-none d-sm-inline">{{ day.date | date: 'EEEE, MMMM d' }}</span>
+                      <span class="d-sm-none">{{ day.date | date: 'EEE, MMM d' }}</span>
+                    </td>
+                    <td class="d-none d-md-table-cell dim">{{ day.sky }}</td>
+                    <td class="text-end text-nowrap low">{{ day.low | number: '1.0-0' }} °C</td>
+                    <td class="text-end text-nowrap high">{{ day.high | number: '1.0-0' }} °C</td>
+                    <td class="text-end text-nowrap">
+                      {{ day.precipitation | number: '1.0-1' }} mm
+                    </td>
+                    <td class="text-end text-nowrap">
+                      @if (day.chanceOfRain !== null) {
+                        {{ day.chanceOfRain }} %
+                      } @else {
+                        <span class="dim d-none d-sm-inline">measured</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      } @else {
+        <div class="table-responsive">
+          <table class="table align-middle" data-testid="averages-table">
+            <thead>
+              <tr>
+                <th scope="col">Month</th>
+                <th scope="col" class="text-end">Mean low</th>
+                <th scope="col" class="text-end">Mean high</th>
+                <th scope="col" class="text-end">
+                  <span class="d-none d-sm-inline">Mean precipitation</span
+                  ><span class="d-sm-none">Precip.</span>
+                </th>
+                <th scope="col" class="text-end">Days</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of averages(); track row.year * 12 + row.month) {
+                <tr>
+                  <td class="text-nowrap">{{ monthDate(row) | date: 'MMMM y' }}</td>
+                  <td class="text-end text-nowrap low">{{ row.low | number: '1.1-1' }} °C</td>
+                  <td class="text-end text-nowrap high">{{ row.high | number: '1.1-1' }} °C</td>
+                  <td class="text-end text-nowrap">{{ row.precipitation | number: '1.1-1' }} mm</td>
+                  <td class="text-end">{{ row.days }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </main>
+
+  <footer class="mt-4 pt-3 small dim">
+    Weather data by <a href="https://open-meteo.com/">Open-Meteo.com</a>,
+    <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+  </footer>
+</div>
