@@ -1,0 +1,180 @@
+/* The page is a sky: deep blue by day, near black by night, with
+   translucent panels floating on it. */
+:host {
+  --sky-top: #2456a8;
+  --sky-middle: #173f80;
+  --sky-bottom: #10294f;
+  --panel: rgba(255, 255, 255, 0.09);
+  --panel-strong: rgba(255, 255, 255, 0.14);
+  --line: rgba(255, 255, 255, 0.14);
+  --dim: rgba(255, 255, 255, 0.85);
+  --accent: #ffd23f;
+  --low: #cfe6ff;
+  --high: #ffe0b0;
+
+  display: block;
+  min-height: 100vh;
+  color: #fff;
+  background-color: #173f80;
+  background-image: linear-gradient(
+    180deg,
+    var(--sky-top) 0%,
+    var(--sky-middle) 55%,
+    var(--sky-bottom) 100%
+  );
+  background-attachment: fixed;
+}
+
+:host(.night) {
+  --sky-top: #2b2f6b;
+  --sky-middle: #171a3d;
+  --sky-bottom: #0e1029;
+}
+
+.dim {
+  color: var(--dim);
+}
+
+.low {
+  color: var(--low);
+}
+
+.high {
+  color: var(--high);
+}
+
+a {
+  color: #fff;
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: 14px;
+}
+
+/* Right now */
+.temperature {
+  font-size: 4.5rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.temperature .unit {
+  font-size: 1.6rem;
+  font-weight: 500;
+  vertical-align: top;
+  margin-left: 0.2rem;
+  line-height: 1.6;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: var(--panel-strong);
+}
+
+.stat .value {
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+/* The seven cards of the coming week */
+.strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.card-day {
+  padding: 0.85rem 1rem;
+  min-height: 9.5rem;
+}
+
+.card-day.today {
+  background: var(--panel-strong);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.card-day .sky {
+  color: var(--dim);
+  font-size: 0.9rem;
+  min-height: 2.7rem;
+}
+
+/* Pills, the yellow one is the active view */
+.pills {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.pill {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  background: var(--panel-strong);
+  color: #fff;
+  font-weight: 500;
+}
+
+.pill:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.pill:disabled {
+  opacity: 0.45;
+}
+
+.pill.active {
+  background: #ffd23f;
+  color: #1a1a1a;
+}
+
+/* Tables on the panel, not on Bootstrap's dark grey */
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: #fff;
+  --bs-table-border-color: var(--line);
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.04);
+  margin-bottom: 0;
+}
+
+.table thead th {
+  color: var(--dim);
+  font-weight: 500;
+  border-bottom-width: 1px;
+}
+
+.table tr.today > td {
+  background: rgba(255, 210, 63, 0.14);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.placeholder {
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
+@media (max-width: 991.98px) {
+  .strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* On a phone the columns need every pixel, and the week fits two a row. */
+@media (max-width: 575.98px) {
+  .strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .temperature {
+    font-size: 3.5rem;
+  }
+
+  .table > :not(caption) > * > * {
+    padding: 0.4rem 0.3rem;
+    font-size: 0.9rem;
+  }
+}
